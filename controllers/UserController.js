@@ -18,10 +18,9 @@ const createToken = (userId, phoneNumber, password) => {
   return token;
 };
 
-
 //Register => tên, mk, sdt, hình, năm sinh, giới tính
 exports.register = async (req, res) => {
-  const { name, password, phoneNumber, avatar, birthday, gender } = req.body;
+  let { name, password, phoneNumber, avatar, birthday, gender } = req.body;
   try {
     // Validate name
     if (!name || typeof name !== "string" || name.trim() === "") {
@@ -43,6 +42,17 @@ exports.register = async (req, res) => {
       return res
         .status(400)
         .json({ message: "A valid phone number is required" });
+    }
+
+    //Validate avatar
+    if (avatar.trim() === "") {
+      avatar =
+        "https://i.pinimg.com/736x/10/6d/77/106d7765ff225167f18019f8f50f1d73.jpg";
+    }
+    if (typeof name !== "string") {
+      return res
+        .status(400)
+        .json({ message: "Avatar must be a non-empty string" });
     }
 
     // Validate birthday
@@ -105,9 +115,7 @@ exports.login = async (req, res) => {
     }
 
     if (password.trim() === "") {
-      return res
-      .status(400)
-      .json({ message: "Don't leave password blank!" });
+      return res.status(400).json({ message: "Don't leave password blank!" });
     }
 
     const user = await userModel.findOne({ phoneNumber });
