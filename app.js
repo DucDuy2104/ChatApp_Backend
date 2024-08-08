@@ -2,13 +2,13 @@ const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
-
 dotenv.config();
-
 // app.use(express.json());
 // express.static(path.join(__dirname, "public"));
 
 const userRouter = require('./routes/users')
+const conversationRouter = require('./routes/conversations')
+const messageRouter = require('./routes/message')
 
 const mongooseURL = process.env.MONGODB_URI;
 mongoose
@@ -22,6 +22,8 @@ app.get("/", (req, res) => {
 
 app.use(express.json());
 app.use('/users', userRouter)
+app.use('/conversations', conversationRouter);
+app.use('/message', messageRouter);
 
 app.listen(process.env.PORT || 3000, () =>
   console.log(`App is listening on port ${process.env.PORT || 3000}!`)

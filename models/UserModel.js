@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema({
   birthday: { type: Date, required: true },
   gender: { type: String, required: true, enum: ['Male', 'Female', 'Other'] },
   bio: { type: String, default: "" },
-  blockedUsers: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
+  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
+  searchHistory: [String],
   createAt: { type: Date, default: Date.now },
   updateAt: { type: Date, default: Date.now },
 });
