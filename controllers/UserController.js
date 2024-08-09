@@ -156,3 +156,136 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+//Update information
+exports.updateInformation = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, avatar, background, birthday, gender, bio } = req.body;
+
+    // Validate gender value
+    if (gender && !["Male", "Female", "Other"].includes(gender)) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid gender value",
+      });
+    }
+
+    const currUser = await userModel.findById(userId);
+
+    if (!currUser) {
+      return res.status(404).json({
+        status: false,
+        message: "User not found",
+      });
+    }
+
+    currUser.name = name ? name : currUser.name;
+    currUser.avatar = avatar ? avatar : currUser.avatar;
+    currUser.background = background
+      ? background
+      : "https://i.pinimg.com/564x/13/9c/e2/139ce2aa86f4f8731439ec28851d2510.jpg";
+    currUser.birthday = birthday ? birthday : currUser.birthday;
+    currUser.bio = bio ? bio : currUser.bio;
+
+    await currUser.save();
+
+    return res.status(200).json({
+      status: true,
+      message: "Information updated successfully",
+      data: currUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+//Change phone number
+exports.changePhoneNumber = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newPhoneNumber } = req.body;
+
+    // Check if the new phone number is unique
+    const existingUser = await userModel.findOne({
+      phoneNumber: newPhoneNumber,
+    });
+    if (existingUser) {
+      return res.status(400).json({
+        status: false,
+        message: "Phone number already in use",
+      });
+    }
+
+    const currUser = await userModel.findById(userId);
+
+    if (!currUser) {
+      return res.status(404).json({
+        status: false,
+        message: "User not found",
+      });
+    }
+
+    currUser.phoneNumber = newPhoneNumber;
+
+    await currUser.save();
+
+    return res.status(200).json({
+      status: true,
+      message: "Phone number changed successfully",
+      data: currUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+//Change password
+exports.changePassword = async (req, res) => {
+  try {
+    const {userId} = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Check if current password is correct
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Current password is incorrect",
+      });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      status: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
