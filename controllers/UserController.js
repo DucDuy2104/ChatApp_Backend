@@ -61,10 +61,10 @@ exports.register = async (req, res) => {
     }
 
     // Validate gender
-    const validGenders = ["Male", "Female", "Other"];
+    const validGenders = ["Nam", "Nữ", "Khác"];
     if (!gender || !validGenders.includes(gender)) {
       return res.status(400).json({
-        message: "Gender is required and must be Male, Female, or Other",
+        message: "Gender is required and must be Nam, Nữ, or Khác",
       });
     }
 
@@ -164,7 +164,7 @@ exports.updateInformation = async (req, res) => {
     const { name, avatar, background, birthday, gender, bio } = req.body;
 
     // Validate gender value
-    if (gender && !["Male", "Female", "Other"].includes(gender)) {
+    if (gender && !["Nam", "Nữ", "Khác"].includes(gender)) {
       return res.status(400).json({
         status: false,
         message: "Invalid gender value",

@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
       "https://i.pinimg.com/564x/13/9c/e2/139ce2aa86f4f8731439ec28851d2510.jpg",
   },
   birthday: { type: Date, required: true },
-  gender: { type: String, required: true, enum: ["Male", "Female", "Other"] },
+  gender: { type: String, required: true, enum: ["Nam", "Nữ", "Khác"] },
   bio: { type: String, default: "" },
   blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
   searchHistory: [String],
