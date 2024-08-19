@@ -7,6 +7,13 @@ const messageContoller = require('../controllers/MessageController')
 // body: {senderId, message, conversationId}
 router.post('/send-message', messageContoller.sendMessage)
 
+
+//add viewer
+router.post('/add-viewer', messageContoller.addViewer)
+
+router.get('/get-messages', messageContoller.getMessages)
+
+
 router.get('/', function(req, res){
     res.send('Hello from message API');
 })

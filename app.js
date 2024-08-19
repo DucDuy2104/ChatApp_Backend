@@ -5,15 +5,19 @@ const mongoose = require("mongoose");
 dotenv.config();
 const http = require("http");
 const server = http.createServer(app)
+const logger = require("morgan");
 // app.use(express.json());
 // express.static(path.join(__dirname, "public"));
 
 const userRouter = require('./routes/users')
 const conversationRouter = require('./routes/conversations')
-const messageRouter = require('./routes/message')
+const messageRouter = require('./routes/messages')
+const friendRouter = require('./routes/friends')
 
 const mongooseURL = process.env.MONGODB_URI;
 
+
+app.use(logger('dev'))
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -22,10 +26,8 @@ app.get("/", (req, res) => {
 app.use(express.json());
 app.use('/users', userRouter)
 app.use('/conversations', conversationRouter);
-app.use('/message', messageRouter);
-
-
-
+app.use('/messages', messageRouter);
+app.use('/friends', friendRouter);
 
 mongoose
   .connect(mongooseURL)
