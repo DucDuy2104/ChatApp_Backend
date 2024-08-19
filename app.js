@@ -24,22 +24,23 @@ app.get("/", (req, res) => {
 });
 
 app.use(express.json());
-app.use('/users', userRouter)
-app.use('/conversations', conversationRouter);
-app.use('/messages', messageRouter);
 app.use('/friends', friendRouter);
+app.use("/users", userRouter);
+app.use("/conversations", conversationRouter);
+app.use("/message", messageRouter);
+app.use("/otp", otpRouter);
 
 mongoose
   .connect(mongooseURL)
   .then(() => {
-    console.log("Connect mongodb success..")
+    console.log("Connect mongodb success..");
     server.listen(process.env.PORT || 3000, () =>
       console.log(`App is listening on port ${process.env.PORT || 3000}!`)
     );
 
-    const io = require('./socket').init(server)
-    io.on('connection', socket => {
-      console.log('new client connection')
-    })
+    const io = require("./socket").init(server);
+    io.on("connection", (socket) => {
+      console.log("new client connection");
+    });
   })
   .catch((error) => console.error("Error connecting to database...", error));
