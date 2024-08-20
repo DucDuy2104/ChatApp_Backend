@@ -13,6 +13,7 @@ const userRouter = require('./routes/users')
 const conversationRouter = require('./routes/conversations')
 const messageRouter = require('./routes/messages')
 const friendRouter = require('./routes/friends')
+const otpRouter = require('./routes/authencations')
 
 const mongooseURL = process.env.MONGODB_URI;
 
