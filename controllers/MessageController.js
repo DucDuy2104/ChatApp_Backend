@@ -25,7 +25,7 @@ exports.addViewer = async (req, res) => {
         if (!conversationId || !viewerId) {
             return res.status(400).json({ status: false, message: "Missing required fields" });
         }
-        const listMessage = await Message.find({ conversationId: conversationId, viewers: { $ne: userId } })
+        const listMessage = await Message.find({ conversationId: conversationId, viewers: { $ne: viewerId } })
         const listMessagePromise = listMessage.map(message => {
             message.viewers.push(viewerId)
             return message.save()
@@ -41,19 +41,20 @@ exports.addViewer = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
     try {
-        const { conversationId, startMessageId } = req.body;
+        const { conversationId, MessageId } = req.body;
         if (!conversationId) {
             return res.status(400).json({ status: false, message: "Missing required fields" });
         }
         var messages;
-        if (startMessageId) {
-            const startMessage = await Message.findById(startMessageId);
-            const startDate = startMessage.createdAt;
-            messages = await Message.find({ createdAt: { $gt: startDate }}).populate('senderId', 'name avatar')
+        if (MessageId) {
+            const Message = await Message.findById(MessageId);
+            const Date = Message.createdAt;
+            messages = await Message.find({ createdAt: { $gt: Date }}).populate('senderId', 'name avatar')
         } else {
             messages = await Message.find({ conversationId: conversationId }).populate('senderId', 'name avatar')
         }
         return res.status(200).json({ status: true, data: messages });
+        
     } catch (error) {
         console.error(error)
         return res.status(500).json({ status: false, message: 'Server error' });

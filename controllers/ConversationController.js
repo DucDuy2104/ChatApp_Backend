@@ -56,25 +56,25 @@ async function getLastMessage(conversation) {
 
 exports.createConversation = async (req, res) => {
     try {
-        var { participantIds } = req.body
-        participantIds = [...new Set(participantIds)]
-        if (participantIds.length > 2) {
+        var { userId } = req.body
+        userId = [...new Set(userId)]
+        if (userId.length > 2) {
             return res.status(400).json({ status: false, message: 'More than two participants are not allowed' })
         }
-        if (participantIds.length === 2) {
-            const checkExistingConversationData = await checkExistingConversation(participantIds)
+        if (userId.length === 2) {
+            const checkExistingConversationData = await checkExistingConversation(userId)
             if (checkExistingConversationData.exists) {
                 return res.status(400).json({ status: false, message: 'Conversation already exists', data: checkExistingConversationData.conversationId })
             } else {
                 const conversation = await Conversation.create({})
-                const participantsPromise = participantIds.map(participantId => Participant.create({ userId: participantId, conversationId: conversation._id }))
+                const participantsPromise = userId.map(participantId => Participant.create({ userId: participantId, conversationId: conversation._id }))
                 await Promise.all(participantsPromise)
                 return res.json({ status: true, data: conversation })
             }
         }
 
         const conversation = await Conversation.create({})
-        const participantsPromise = participantIds.map((participantId, index) => Participant.create({ userId: participantId, conversationId: conversation._id, role: index == 0 ? 'admin' : 'member' }))
+        const participantsPromise = userId.map((participantId, index) => Participant.create({ userId: participantId, conversationId: conversation._id, role: index == 0 ? 'admin' : 'member' }))
         await Promise.all(participantsPromise)
 
         return res.status(200).json({ status: true, message: 'created conversation successfully', data: { conversationId: conversation._id } })

@@ -12,7 +12,7 @@ router.get('/get-conversation-by-id/:conversationId', conversationController.get
 
 //get conversations by userId
 //params: userId
-router.get('/get-conversations', conversationController.getConversationByUserId)
+router.get('/get-conversations/:userId', conversationController.getConversationByUserId)
 
 
 

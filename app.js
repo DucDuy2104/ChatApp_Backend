@@ -27,7 +27,7 @@ app.use(express.json());
 app.use('/friends', friendRouter);
 app.use("/users", userRouter);
 app.use("/conversations", conversationRouter);
-app.use("/message", messageRouter);
+app.use("/messages", messageRouter);
 
 mongoose
   .connect(mongooseURL)
