@@ -28,7 +28,6 @@ app.use('/friends', friendRouter);
 app.use("/users", userRouter);
 app.use("/conversations", conversationRouter);
 app.use("/message", messageRouter);
-app.use("/otp", otpRouter);
 
 mongoose
   .connect(mongooseURL)
