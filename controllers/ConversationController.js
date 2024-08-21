@@ -94,7 +94,7 @@ exports.getConversationById = async (req, res) => {
         }
         const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar')
         const info = await getInformation(conversation)
-        return res.status(200).json({ status: true, data: { ...conversation, participants, ...info } })
+        return res.status(200).json({ status: true, data: { ...conversation.toObject(), participants, ...info } })
     } catch (error) {
         console.error(error)
         return res.status(500).json({ status: false, message: 'Server error' })
@@ -113,14 +113,14 @@ exports.getConversationByUserId = async (req, res) => {
             const info = await getInformation(conversation, userId)
             const lastMessage = await getLastMessage(conversation)
             return {
-                ...conversationPromises._doc,
+                ...conversation.toObject(),
                 ...info,
                 lastMessage
             }
         })
 
-        await Promise.all(conversationPromises)
-        return res.status(200).json({ status: true, data: conversationPromises })
+        const result = await Promise.all(conversationPromises)
+        return res.status(200).json({ status: true, data: result })
     } catch (error) {
         console.error(error)
         return res.status(500).json({ status: false, message: 'Server error' })
