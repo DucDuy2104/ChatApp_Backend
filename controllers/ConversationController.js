@@ -1,6 +1,7 @@
 const Conversation = require('../models/ConversationModel');
 const Participant = require('../models/ParticipantModel')
 const Message = require('../models/MessageModel')
+const socket = require('../socket')
 
 async function checkExistingConversation(listUser) {
     const existingConversations = await Participant.find({ userId: { $in: listUser } })
@@ -25,14 +26,14 @@ async function getInformation(conversation, userId) {
     if (participants.length === 2) {
         const otherUser = participants.find(participant => participant.userId._id !== userId).userId
         avatar = otherUser.avatar
-        name = otherUser.name
+        name = otherUser.name + ", "
     } else {
         avatar = conversation.avatar
-        if(conversation.conversationName) {
+        if (conversation.conversationName) {
             name = conversation.conversationName
         } else {
             for (const participant of participants) {
-                if(participant.userId._id !== userId ) {
+                if (participant.userId._id !== userId) {
                     name += participant.userId.name + ", "
                 }
             }
@@ -40,7 +41,7 @@ async function getInformation(conversation, userId) {
     }
     return {
         image: avatar,
-        conversationName: name.slice(0, -2),
+        conversationName: name.trim().slice(0, -1),
         participantsCount: participants.length
     };
 }
@@ -56,26 +57,33 @@ async function getLastMessage(conversation) {
 
 exports.createConversation = async (req, res) => {
     try {
-        var { userId } = req.body
-        userId = [...new Set(userId)]
-        if (userId.length > 2) {
+        var { userIds } = req.body
+        userIds = [...new Set(userIds)]
+        if (userIds.length > 2) {
             return res.status(400).json({ status: false, message: 'More than two participants are not allowed' })
         }
-        if (userId.length === 2) {
-            const checkExistingConversationData = await checkExistingConversation(userId)
+        if (userIds.length === 2) {
+            const checkExistingConversationData = await checkExistingConversation(userIds)
             if (checkExistingConversationData.exists) {
                 return res.status(400).json({ status: false, message: 'Conversation already exists', data: checkExistingConversationData.conversationId })
             } else {
                 const conversation = await Conversation.create({})
-                const participantsPromise = userId.map(participantId => Participant.create({ userId: participantId, conversationId: conversation._id }))
+                const participantsPromise = userIds.map(participantId => Participant.create({ userId: participantId, conversationId: conversation._id }))
                 await Promise.all(participantsPromise)
-                return res.json({ status: true, data: conversation })
+                socket.getIo().emit('createConversation', {
+                    conversationId: conversation._id
+                })
+                return res.status(200).json({ status: true, data: conversation._id })
             }
         }
 
         const conversation = await Conversation.create({})
-        const participantsPromise = userId.map((participantId, index) => Participant.create({ userId: participantId, conversationId: conversation._id, role: index == 0 ? 'admin' : 'member' }))
+        const participantsPromise = userIds.map((participantId, index) => Participant.create({ userId: participantId, conversationId: conversation._id, role: index == 0 ? 'admin' : 'member' }))
         await Promise.all(participantsPromise)
+
+        socket.getIo().emit('createConversation', {
+            conversationId: conversation._id
+        })
 
         return res.status(200).json({ status: true, message: 'created conversation successfully', data: { conversationId: conversation._id } })
     } catch (error) {
@@ -87,14 +95,15 @@ exports.createConversation = async (req, res) => {
 
 exports.getConversationById = async (req, res) => {
     try {
-        const { conversationId } = req.params
+        const { conversationId, getterId } = req.body
         const conversation = await Conversation.findById(conversationId)
         if (!conversation) {
             return res.status(404).json({ status: false, message: 'Conversation not found' })
         }
         const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar')
-        const info = await getInformation(conversation)
-        return res.status(200).json({ status: true, data: { ...conversation.toObject(), participants, ...info } })
+        const info = await getInformation(conversation, getterId)
+        const lastMessage = await getLastMessage(conversation)
+        return res.status(200).json({ status: true, data: { ...conversation.toObject(), participants, ...info, lastMessage } })
     } catch (error) {
         console.error(error)
         return res.status(500).json({ status: false, message: 'Server error' })
@@ -104,7 +113,7 @@ exports.getConversationById = async (req, res) => {
 exports.getConversationByUserId = async (req, res) => {
     try {
         const { userId } = req.params
-        if(!userId) {
+        if (!userId) {
             return res.status(400).json({ status: false, message: 'User id is required' })
         }
         const conversationIds = await Participant.find({ userId }).distinct('conversationId')
@@ -112,9 +121,11 @@ exports.getConversationByUserId = async (req, res) => {
         const conversationPromises = conversations.map(async conversation => {
             const info = await getInformation(conversation, userId)
             const lastMessage = await getLastMessage(conversation)
+            const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar')
             return {
                 ...conversation.toObject(),
                 ...info,
+                participants,
                 lastMessage
             }
         })

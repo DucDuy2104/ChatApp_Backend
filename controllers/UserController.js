@@ -45,7 +45,7 @@ exports.register = async (req, res) => {
     }
 
     //Validate avatar
-    if (avatar.trim() === "") {
+    if (avatar.trim() === "" || !avatar) {
       avatar =
         "https://i.pinimg.com/736x/10/6d/77/106d7765ff225167f18019f8f50f1d73.jpg";
     }

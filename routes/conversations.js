@@ -8,7 +8,7 @@ router.post('/create-conversation', conversationController.createConversation)
 
 //get conversation by id
 //params: conversationId
-router.get('/get-conversation-by-id/:conversationId', conversationController.getConversationById)
+router.post('/get-conversation-by-id', conversationController.getConversationById)
 
 //get conversations by userId
 //params: userId

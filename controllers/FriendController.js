@@ -2,6 +2,7 @@ const FriendRequest = require('../models/FriendRequestModel')
 const Friend = require('../models/FriendModel');
 const Conversation = require('../models/ConversationModel')
 const Participant = require('../models/ParticipantModel')
+const socket = require('../socket')
 
 async function checkExistingConversation(listUser) {
     const existingConversations = await Participant.find({ userId: { $in: listUser } })
@@ -58,6 +59,10 @@ exports.acceptRequest = async (req, res) => {
                 Participant.create({ userId: friendRequest.userRecieved, conversationId: conversation._id })
             ]
             await Promise.all(participantsPromise)
+            socket.getIo().emit('createConversation', {
+                conversationId: conversation._id
+            })
+
         }
         await FriendRequest.findByIdAndDelete(friendRequestId);
         return res.status(200).json({ status: true, message: "Friend request accepted successfully", data: friend });
@@ -79,6 +84,5 @@ exports.rejectRequest = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ status: false, message: "Server error" });
-
     }
 }
