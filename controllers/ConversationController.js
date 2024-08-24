@@ -20,7 +20,6 @@ async function checkExistingConversation(listUser) {
 }
 
 async function getInformation(conversation, userId) {
-    let avatar = "";
     let name = "";
 
     const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar');
@@ -29,10 +28,8 @@ async function getInformation(conversation, userId) {
     if (participants.length === 2) {
         const otherUser = participants.find(participant => !participant.userId._id.equals(userId)).userId;
         console.log('otherUser: ', otherUser);
-        avatar = otherUser.avatar;
         name = otherUser.name;
     } else {
-        avatar = conversation.avatar;
         if (conversation.conversationName) {
             name = conversation.conversationName;
         } else {
@@ -45,7 +42,6 @@ async function getInformation(conversation, userId) {
     }
 
     return {
-        image: avatar,
         conversationName: name.trim(),
         participantsCount: participants.length
     };
