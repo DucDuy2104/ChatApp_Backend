@@ -139,9 +139,39 @@ exports.getSendRequest = async (req, res) => {
         .json({ message: "No friend requests found for this user" });
     }
 
-    const userDetails = friendRequests.map((request) => request.userRecieved);
+    const responseData = friendRequests.map((request) => ({
+      requestId: request._id,
+      userRecieved: request.userRecieved,
+    }));
 
-    res.status(200).json({ status: true, data: userDetails });
+    res.status(200).json({ status: true, data: responseData });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: false, message: "Server error" });
+  }
+};
+
+// API to get all
+exports.getAllReceivedRQ = async (req, res) => {
+  try {
+    const { receiveId } = req.params;
+
+    const friendRequests = await FriendRequest.find({ userRecieved: receiveId })
+      .populate("userSent", "-password")
+      .exec();
+
+    if (!friendRequests.length) {
+      return res
+        .status(404)
+        .json({ message: "No friend requests found for this user" });
+    }
+
+    const responseData = friendRequests.map((request) => ({
+      requestId: request._id,
+      userSent: request.userSent,
+    }));
+
+    res.status(200).json({ status: true, data: responseData });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: false, message: "Server error" });

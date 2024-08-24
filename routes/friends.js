@@ -11,5 +11,6 @@ router.put("/reject-request/:friendRequestId", friendController.rejectRequest);
 
 //Get sendrequest and receive request
 router.get("/getall_friendRq/:senderId", friendController.getSendRequest);
+router.get("/getall_receivedRq/:receiveId", friendController.getAllReceivedRQ);
 
 module.exports = router;
