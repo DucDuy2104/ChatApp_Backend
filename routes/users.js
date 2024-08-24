@@ -17,4 +17,7 @@ router.post("/change_phonenumber/:userId", controller.changePhoneNumber);
 //Change password
 router.post("/changePassword/:userId", controller.changePassword);
 
+//Search friend
+router.get("/searchFriendByPhoneNumber", controller.searchUser)
+
 module.exports = router;

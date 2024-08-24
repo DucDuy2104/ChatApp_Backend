@@ -1,4 +1,5 @@
 const userModel = require("../models/UserModel");
+const friendModel = require("../models/FriendModel");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
@@ -251,7 +252,7 @@ exports.changePhoneNumber = async (req, res) => {
 //Change password
 exports.changePassword = async (req, res) => {
   try {
-    const {userId} = req.params;
+    const { userId } = req.params;
     const { currentPassword, newPassword } = req.body;
 
     const user = await userModel.findById(userId);
@@ -280,6 +281,46 @@ exports.changePassword = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "Password changed successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+//Search user for send request
+exports.searchUser = async (req, res) => {
+  try {
+    const { phoneNumber, senderId } = req.body;
+
+    const currentUser = await userModel.findById(senderId);
+    if (!currentUser) {
+      return res.status(404).json({ message: "Sender not found" });
+    }
+
+    const searchedUser = await userModel.findOne({ phoneNumber });
+    if (!searchedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isFriend = await friendModel.exists({
+      users: { $all: [senderId, searchedUser._id] },
+    });
+
+    res.json({
+      currentUser: currentUser._id,
+      searchedUser: {
+        id: searchedUser._id,
+        name: searchedUser.name,
+        phoneNumber: searchedUser.phoneNumber,
+        avatar: searchedUser.avatar,
+        bio: searchedUser.bio,
+        gender: searchedUser.gender,
+      },
+      isFriend: !!isFriend, // Convert to boolean
     });
   } catch (error) {
     return res.status(500).json({
