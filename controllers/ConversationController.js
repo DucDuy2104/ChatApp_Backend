@@ -19,34 +19,6 @@ async function checkExistingConversation(listUser) {
     return { exists: false };
 }
 
-async function getInformation(conversation, userId) {
-    let name = "";
-
-    const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar');
-    console.log('participants: ', participants);
-
-    if (participants.length === 2) {
-        const otherUser = participants.find(participant => !participant.userId._id.equals(userId)).userId;
-        console.log('otherUser: ', otherUser);
-        name = otherUser.name;
-    } else {
-        if (conversation.conversationName) {
-            name = conversation.conversationName;
-        } else {
-            const otherUsersNames = participants
-                .filter(participant => !participant.userId._id.equals(userId))
-                .map(participant => participant.userId.name);
-
-            name = otherUsersNames.join(', ');
-        }
-    }
-
-    return {
-        conversationName: name.trim(),
-        participantsCount: participants.length
-    };
-}
-
 async function getLastMessage(conversation) {
     const messages = await Message.find({ conversationId: conversation._id }).sort({ createdAt: -1 }).limit(1)
     if (messages.length > 0) {
@@ -99,9 +71,8 @@ exports.getConversationById = async (req, res) => {
             return res.status(404).json({ status: false, message: 'Conversation not found' })
         }
         const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar')
-        const info = await getInformation(conversation, getterId)
         const lastMessage = await getLastMessage(conversation)
-        return res.status(200).json({ status: true, data: { ...conversation.toObject(), participants, ...info, lastMessage } })
+        return res.status(200).json({ status: true, data: { ...conversation.toObject(), participants, lastMessage } })
     } catch (error) {
         console.error(error)
         return res.status(500).json({ status: false, message: 'Server error' })
@@ -125,12 +96,10 @@ exports.getConversationByUserId = async (req, res) => {
             conversations = await Conversation.find({ _id: { $in: conversationIds } });
         }
         const conversationPromises = conversations.map(async conversation => {
-            const info = await getInformation(conversation, userId)
             const lastMessage = await getLastMessage(conversation)
             const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar')
             return {
                 ...conversation.toObject(),
-                ...info,
                 participants,
                 lastMessage
             }
