@@ -22,26 +22,31 @@ async function checkExistingConversation(listUser) {
 async function getInformation(conversation, userId) {
     let avatar = "";
     let name = "";
-    const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar')
+
+    const participants = await Participant.find({ conversationId: conversation._id }).populate('userId', 'name avatar');
+    console.log('participants: ', participants);
+
     if (participants.length === 2) {
-        const otherUser = participants.find(participant => participant.userId._id !== userId).userId
-        avatar = otherUser.avatar
-        name = otherUser.name + ", "
+        const otherUser = participants.find(participant => !participant.userId._id.equals(userId)).userId;
+        console.log('otherUser: ', otherUser);
+        avatar = otherUser.avatar;
+        name = otherUser.name;
     } else {
-        avatar = conversation.avatar
+        avatar = conversation.avatar;
         if (conversation.conversationName) {
-            name = conversation.conversationName
+            name = conversation.conversationName;
         } else {
-            for (const participant of participants) {
-                if (participant.userId._id !== userId) {
-                    name += participant.userId.name + ", "
-                }
-            }
+            const otherUsersNames = participants
+                .filter(participant => !participant.userId._id.equals(userId))
+                .map(participant => participant.userId.name);
+
+            name = otherUsersNames.join(', ');
         }
     }
+
     return {
         image: avatar,
-        conversationName: name.trim().slice(0, -1),
+        conversationName: name.trim(),
         participantsCount: participants.length
     };
 }
@@ -59,9 +64,6 @@ exports.createConversation = async (req, res) => {
     try {
         var { userIds } = req.body
         userIds = [...new Set(userIds)]
-        if (userIds.length > 2) {
-            return res.status(400).json({ status: false, message: 'More than two participants are not allowed' })
-        }
         if (userIds.length === 2) {
             const checkExistingConversationData = await checkExistingConversation(userIds)
             if (checkExistingConversationData.exists) {
@@ -112,12 +114,20 @@ exports.getConversationById = async (req, res) => {
 
 exports.getConversationByUserId = async (req, res) => {
     try {
-        const { userId } = req.params
+        const { userId, lastConversationId } = req.body
         if (!userId) {
             return res.status(400).json({ status: false, message: 'User id is required' })
         }
         const conversationIds = await Participant.find({ userId }).distinct('conversationId')
-        const conversations = await Conversation.find({ _id: { $in: conversationIds } });
+        var conversations;
+        if (lastConversationId) {
+            const lastConversation = await Conversation.findById(lastConversationId)
+            const lastDate = lastConversation.createdAt
+            conversations = await Conversation.find({ _id: { $in: conversationIds }, createdAt: { $gt: lastDate } });
+
+        } else {
+            conversations = await Conversation.find({ _id: { $in: conversationIds } });
+        }
         const conversationPromises = conversations.map(async conversation => {
             const info = await getInformation(conversation, userId)
             const lastMessage = await getLastMessage(conversation)

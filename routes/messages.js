@@ -11,7 +11,10 @@ router.post('/send-message', messageContoller.sendMessage)
 //add viewer
 router.post('/add-viewer', messageContoller.addViewer)
 
-router.get('/get-messages', messageContoller.getMessages)
+router.get('/get-messages-by-conversation', messageContoller.getMessages)
+
+
+router.get('/get-messages-by-user', messageContoller.getMessagesByUser)
 
 
 router.get('/', function(req, res){

@@ -11,8 +11,8 @@ router.post('/create-conversation', conversationController.createConversation)
 router.post('/get-conversation-by-id', conversationController.getConversationById)
 
 //get conversations by userId
-//params: userId
-router.get('/get-conversations/:userId', conversationController.getConversationByUserId)
+//body: userId, lastConversationId
+router.post('/get-conversations-by-user', conversationController.getConversationByUserId)
 
 
 
