@@ -13,4 +13,7 @@ router.put("/reject-request/:friendRequestId", friendController.rejectRequest);
 router.get("/getall_friendRq/:senderId", friendController.getSendRequest);
 router.get("/getall_receivedRq/:receiveId", friendController.getAllReceivedRQ);
 
+//revoke request
+router.put("/revoke_request", friendController.revokeRq);
+
 module.exports = router;

@@ -161,6 +161,7 @@ exports.getAllReceivedRQ = async (req, res) => {
       .exec();
 
     if (!friendRequests.length) {
+      console.log("No friend requests found for this user");
       return res
         .status(404)
         .json({ message: "No friend requests found for this user" });
@@ -175,5 +176,39 @@ exports.getAllReceivedRQ = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: false, message: "Server error" });
+  }
+};
+
+//revoke request
+exports.revokeRq = async (req, res) => {
+  try {
+    const { userSent, userRecieved } = req.body;
+
+    if (!userSent || !userRecieved) {
+      console.log("Missing required fields");
+      return res
+        .status(400)
+        .json({ status: false, message: "Missing required fields" });
+    }
+
+    const result = await FriendRequest.findOneAndDelete({
+      userSent,
+      userRecieved,
+    });
+
+    if (!result) {
+      console.log("Friend request not found");
+      return res
+        .status(404)
+        .json({ status: false, message: "Friend request not found" });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Friend request revoke successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: false, message: "Server error" });
   }
 };
