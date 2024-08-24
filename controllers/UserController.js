@@ -298,11 +298,13 @@ exports.searchUser = async (req, res) => {
 
     const currentUser = await userModel.findById(senderId);
     if (!currentUser) {
+      console.log("Sender not found");
       return res.status(404).json({ message: "Sender not found" });
     }
 
     const searchedUser = await userModel.findOne({ phoneNumber });
     if (!searchedUser) {
+      console.log("User not found");
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -310,7 +312,7 @@ exports.searchUser = async (req, res) => {
       users: { $all: [senderId, searchedUser._id] },
     });
 
-    res.json({
+    const data = {
       currentUser: currentUser._id,
       searchedUser: {
         id: searchedUser._id,
@@ -320,8 +322,12 @@ exports.searchUser = async (req, res) => {
         bio: searchedUser.bio,
         gender: searchedUser.gender,
       },
-      isFriend: !!isFriend, // boolean 
-    });
+      isFriend: !!isFriend, // boolean
+    };
+
+    return res
+      .status(200)
+      .json({ status: true, data: data, messages: "Get success" });
   } catch (error) {
     return res.status(500).json({
       status: false,
