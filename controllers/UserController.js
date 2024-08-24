@@ -291,7 +291,7 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-//Search user for send request
+//Search user by phone number
 exports.searchUser = async (req, res) => {
   try {
     const { phoneNumber, senderId } = req.body;
@@ -320,7 +320,7 @@ exports.searchUser = async (req, res) => {
         bio: searchedUser.bio,
         gender: searchedUser.gender,
       },
-      isFriend: !!isFriend, // Convert to boolean
+      isFriend: !!isFriend, // boolean 
     });
   } catch (error) {
     return res.status(500).json({
