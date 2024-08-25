@@ -7,7 +7,7 @@ exports.sendMessage = async (req, res) => {
         if (!message || !senderId || !conversationId) {
             return res.status(400).json({ status: false, message: "Missing required fields" });
         }
-        const createdMessage = await Message.create({ senderId, conversationId, message, type: type || "text" })
+        const createdMessage = await Message.create({ senderId, conversationId, message, type: type || "text", viewers: [senderId] })
         const messageReturn = await Message.findById(createdMessage._id).populate('senderId', 'name avatar')
         socket.getIo().emit('sendMessage', {
             message: messageReturn
@@ -32,13 +32,16 @@ exports.addViewer = async (req, res) => {
             return message.save()
         })
         await Promise.all(listMessagePromise)
+        socket.getIo().emit('addViewer', {
+            conversationId,
+            viewerId
+        })
         return res.status(200).json({ status: true, message: 'added viewer successfully' });
     } catch (error) {
         console.log('err: ', error)
         return res.status(500).json({ status: false, message: 'Server error' });
     }
 }
-
 
 exports.getMessages = async (req, res) => {
     try {
