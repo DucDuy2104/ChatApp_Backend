@@ -128,12 +128,10 @@ exports.login = async (req, res) => {
     }
 
     // Check password is correct
-    const isMatch = bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res
-        .status(400)
-        .json({ message: "Invalid phone number or password" });
+      return res.status(400).json({ message: "Invalid password" });
     }
 
     const token = createToken(user._id, phoneNumber, password);
