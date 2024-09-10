@@ -7,15 +7,19 @@ const CommentSchema = new mongoose.Schema({
   },
   authorId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "user",
     required: true,
   },
   postId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Post",
+    ref: "post",
     required: true,
   },
   createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
     type: Date,
     default: Date.now,
   },
