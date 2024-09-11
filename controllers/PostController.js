@@ -1,5 +1,6 @@
 const PostModel = require("../models/PostModel");
 const UserModel = require("../models/UserModel");
+const FriendModel = require("../models/FriendModel");
 
 // Đăng bài viết mới
 exports.postStatus = async (req, res) => {
@@ -35,8 +36,36 @@ exports.postStatus = async (req, res) => {
 // Lấy danh sách bài viết
 exports.getStatus = async (req, res) => {
   try {
-    const posts = await PostModel.find().populate("authorId", "name");
-    return res.status(200).json(posts);
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User id is required!" });
+    }
+
+    // Tìm danh sách bạn bè của người dùng hiện tại
+    const friends = await FriendModel.findOne({ users: userId }).select(
+      "users"
+    );
+
+    if (!friends) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Friends not found!" });
+    }
+
+    // Lấy danh sách bạn bè ngoại trừ userId
+    const friendIds = friends.users.filter((id) => id.toString() !== userId);
+
+    // Tìm bài viết của những người có trong danh sách bạn bè
+    const posts = await PostModel.find({
+      authorId: { $in: friendIds },
+    }).populate("authorId", "name");
+
+    return res.status(200).json({
+      status: true,
+      message: "",
+      data: posts
+    });
   } catch (err) {
     return res
       .status(500)
@@ -110,6 +139,40 @@ exports.deleteStatus = async (req, res) => {
     const idStatus = req.params.idStatus;
     await PostModel.findByIdAndDelete(idStatus);
     return res.status(200).json({ status: true, message: "Post deleted" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ status: false, message: err.message, error: "Server error" });
+  }
+};
+
+// Thích bài viết
+exports.likePost = async (req, res) => {
+  try {
+    const { idStatus } = req.params;
+    const { userId } = req.body;
+
+    if (idStatus.trim === "" || userId.trim() === "") {
+      return res.status(400).json({ error: "All id is required!" });
+    }
+
+    const post = await PostModel.findById(idStatus);
+    if (!post) {
+      return res.status(400).json({ error: "This post is not exist!" });
+    }
+
+    if (post.likes.includes(userId)) {
+      post.likes = post.likes.filter((id) => id.toString() !== userId);
+    } else {
+      post.likes.push(userId);
+    }
+
+    await post.save();
+    return res.status(200).json({
+      status: true,
+      message: post.likes.includes(userId) ? "Like" : "Unliked",
+      data: post.likes.length,
+    });
   } catch (err) {
     return res
       .status(500)
