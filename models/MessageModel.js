@@ -13,8 +13,7 @@ const messageSchema = new Schema({
         required: true
     },
     message: {
-        type: String,
-        required: true
+        type: String
     },
     type: {
         type: String,
@@ -31,6 +30,7 @@ const messageSchema = new Schema({
             ref: 'user'
         }
     ],
+    assets: [],
     createdAt: {
         type: Date,
         default: Date.now

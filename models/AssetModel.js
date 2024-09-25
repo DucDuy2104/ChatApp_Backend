@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 const assetSchema = new mongoose.Schema({
+  messageId: {
+    type: Schema.Types.ObjectId,
+    ref: "message",
+    required: true,
+  },
   type: { type: String },
   assetUrl: { type: String },
   width: { type: Number },

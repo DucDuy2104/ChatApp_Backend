@@ -6,6 +6,7 @@ dotenv.config();
 const http = require("http");
 const server = http.createServer(app);
 const logger = require("morgan");
+const path = require("path");
 // app.use(express.json());
 // express.static(path.join(__dirname, "public"));
 
@@ -15,10 +16,12 @@ const messageRouter = require("./routes/messages");
 const friendRouter = require("./routes/friends");
 const postRouter = require("./routes/post");
 const commentRouter = require("./routes/comment");
+const uploadRouter = require('./routes/upload');
 
 const mongooseURL = process.env.MONGODB_URI;
 
 app.use(logger("dev"));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -31,6 +34,7 @@ app.use("/conversations", conversationRouter);
 app.use("/messages", messageRouter);
 app.use("/posts", postRouter);
 app.use("/comments", commentRouter);
+app.use("/upload", uploadRouter);
 
 mongoose
   .connect(mongooseURL)
