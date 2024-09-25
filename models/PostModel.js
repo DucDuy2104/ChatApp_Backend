@@ -2,14 +2,13 @@ const mongoose = require("mongoose");
 const PostSchema = new mongoose.Schema({
   content: {
     type: String,
-    required: true,
   },
   authorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
     required: true,
   },
-  attachments: [String],
+  attachments: [Object],
   likes: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "user",
