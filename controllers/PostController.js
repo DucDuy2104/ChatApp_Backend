@@ -49,28 +49,27 @@ exports.getStatus = async (req, res) => {
       return res.status(400).json({ error: "User id is required!" });
     }
 
-    // Tìm danh sách bạn bè của người dùng hiện tại
+    // Tìm bạn bè
     const friends = await FriendModel.findOne({ users: userId }).select(
       "users"
     );
 
-    if (!friends) {
-      return res
-        .status(404)
-        .json({ status: false, message: "Friends not found!" });
+    let friendIds = [];
+
+    // Lọc ra bạn bè ngoại trừ userId
+    if (friends && friends.users) {
+      friendIds = friends.users.filter((id) => id.toString() !== userId);
     }
 
-    // Lấy danh sách bạn bè ngoại trừ userId
-    const friendIds = friends.users.filter((id) => id.toString() !== userId);
+    const authorIds = [userId, ...friendIds];
 
-    // Tìm bài viết của những người có trong danh sách bạn bè
     const posts = await PostModel.find({
-      authorId: { $in: friendIds },
+      authorId: { $in: authorIds },
     }).populate("authorId", "name");
 
     return res.status(200).json({
       status: true,
-      message: "",
+      message: "Get status successfylly",
       data: posts,
     });
   } catch (err) {
