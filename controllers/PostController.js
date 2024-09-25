@@ -6,10 +6,17 @@ const FriendModel = require("../models/FriendModel");
 exports.postStatus = async (req, res) => {
   const { content, authorId, attachments } = req.body;
   try {
-    if (!content && authorId) {
+    if (!content && (!attachments || attachments.length === 0)) {
       return res.status(400).json({
         status: false,
-        message: "Content and authorId is required!",
+        message: "At least one of content or attachments is required!",
+      });
+    }
+
+    if (!authorId) {
+      return res.status(400).json({
+        status: false,
+        message: " authorId is required!",
       });
     }
 
@@ -64,7 +71,7 @@ exports.getStatus = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "",
-      data: posts
+      data: posts,
     });
   } catch (err) {
     return res
