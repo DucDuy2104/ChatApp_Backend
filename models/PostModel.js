@@ -8,7 +8,12 @@ const PostSchema = new mongoose.Schema({
     ref: "user",
     required: true,
   },
-  attachments: [Object],
+  attachments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "asset",
+    },
+  ],
   likes: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "user",

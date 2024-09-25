@@ -1,6 +1,7 @@
 const PostModel = require("../models/PostModel");
 const UserModel = require("../models/UserModel");
 const FriendModel = require("../models/FriendModel");
+const AssetModel = require('../models/AssetModel')
 
 // Đăng bài viết mới
 exports.postStatus = async (req, res) => {
@@ -28,13 +29,31 @@ exports.postStatus = async (req, res) => {
       });
     }
 
-    const post = new PostModel({ content, authorId, attachments });
+    let attachmentIds = [];
+    if (attachments && attachments.length > 0) {
+      for (let attachment of attachments) {
+        const newAsset = await AssetModel.create({
+          type: attachment.type,
+          assetUrl: attachment.data,
+        });
+
+        attachmentIds.push(newAsset._id);
+      }
+    }
+
+    const post = new PostModel({
+      content,
+      authorId,
+      attachments: attachmentIds,
+    });
     await post.save();
-    res
+    
+    return res
       .status(200)
       .json({ status: true, message: "Post successfully", data: post });
   } catch (err) {
-    res
+    console.log(err);
+    return res
       .status(500)
       .json({ status: false, message: err.message, error: "Server error" });
   }
