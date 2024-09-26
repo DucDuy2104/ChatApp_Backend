@@ -1,7 +1,7 @@
 const PostModel = require("../models/PostModel");
 const UserModel = require("../models/UserModel");
 const FriendModel = require("../models/FriendModel");
-const AssetModel = require('../models/AssetModel')
+const AssetModel = require("../models/AssetModel");
 
 // Đăng bài viết mới
 exports.postStatus = async (req, res) => {
@@ -47,7 +47,7 @@ exports.postStatus = async (req, res) => {
       attachments: attachmentIds,
     });
     await post.save();
-    
+
     return res
       .status(200)
       .json({ status: true, message: "Post successfully", data: post });
@@ -59,7 +59,6 @@ exports.postStatus = async (req, res) => {
   }
 };
 
-// Lấy danh sách bài viết
 exports.getStatus = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -75,7 +74,6 @@ exports.getStatus = async (req, res) => {
 
     let friendIds = [];
 
-    // Lọc ra bạn bè ngoại trừ userId
     if (friends && friends.users) {
       friendIds = friends.users.filter((id) => id.toString() !== userId);
     }
@@ -84,17 +82,39 @@ exports.getStatus = async (req, res) => {
 
     const posts = await PostModel.find({
       authorId: { $in: authorIds },
-    }).populate("authorId", "name");
+    })
+      .populate("authorId", "name avatar")
+      .populate({
+        path: "attachments",
+        select: "type assetUrl",
+      })
+      .populate({
+        path: "likes",
+        select: "name",
+      });
+
+    const formattedPosts = posts.map((post) => ({
+      _id: post._id,
+      content: post.content,
+      author: post.authorId.name,
+      avatar: post.authorId.avatar,
+      attachments: post.attachments,
+      likeCount: post.likes.length,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    }));
 
     return res.status(200).json({
       status: true,
-      message: "Get status successfylly",
-      data: posts,
+      message: "Get status successfully",
+      data: formattedPosts,
     });
   } catch (err) {
-    return res
-      .status(500)
-      .json({ status: false, message: err.message, error: "Server error" });
+    return res.status(500).json({
+      status: false,
+      message: err.message,
+      error: "Server error",
+    });
   }
 };
 
